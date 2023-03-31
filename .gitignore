@@ -161,3 +161,4 @@ cython_debug/
 notebooks/checkpoints/range3/MODEL_0/checkpoint
 *.index
 *.data-00000-of-00001
+notebooks/checkpoints/*
