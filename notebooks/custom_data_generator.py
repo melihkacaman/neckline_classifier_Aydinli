@@ -40,7 +40,7 @@ class AydFashionDataGenerator():
         img = tf.image.resize(img, [224, 224])
         return img.numpy() 
     
-    def generate_images(self, is_training: bool, bathc_size=16): 
+    def generate_images(self, is_training: bool, bathc_size=16, epoch=5): 
         """
             Used to generate a batch with images when training/testing/validating our Keras model.  
         """
@@ -71,7 +71,8 @@ class AydFashionDataGenerator():
                                              }
                     images, attr_yaka, attr_kolBoyu, attr_cep = [], [], [], [] 
 
-            if not is_training:
+            epoch = epoch - 1 
+            if epoch == 0:
                 break 
 
 class MultiOutputDataGenerator(tf.keras.preprocessing.image.ImageDataGenerator): 
