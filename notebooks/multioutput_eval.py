@@ -1,7 +1,9 @@
 from sklearn.metrics import precision_score, recall_score, f1_score 
 import tensorflow as tf 
 import numpy as np 
-import pandas as pd 
+import pandas as pd
+import cv2 
+from matplotlib import pyplot as plt 
 
 class MultiOutputModelTester:
     def __init__(self, model: tf.keras.models.Model, y_test: pd.DataFrame, paths: list, dims: tuple = (224, 224, 3)): 
@@ -69,8 +71,45 @@ class MultiOutputModelTester:
 
             result[col] = {
                 "threshold": threshold, 
-                "precision_weighted": round(precision_score(self.ys[col], custom_yhats, average="weighted"), 2),
-                "recall_weighted": round(recall_score(self.ys[col], custom_yhats, average="weighted"), 2), 
-                "f1_score_weighted": round(f1_score(self.ys[col], custom_yhats, average="weighted"), 2)
+                "precision_weighted": round(precision_score(self.ys[col], custom_yhats, average="weighted"), 4),
+                "recall_weighted": round(recall_score(self.ys[col], custom_yhats, average="weighted"), 4), 
+                "f1_score_weighted": round(f1_score(self.ys[col], custom_yhats, average="weighted"), 4)
             }
         return result
+    
+
+def custom_predict(model: tf.keras.models.Model, input ,labels: list, classes: dict):
+    df = pd.DataFrame() 
+
+    input_x = cv2.resize(input, (224,224))     
+    input_x = input_x.reshape(1,224,224,3) 
+    result = model.predict(input_x)
+
+    for i, key in enumerate(classes): 
+        indexes = [v for v in classes[key].values()] 
+        preds_ith = result[i].squeeze() 
+        if len(preds_ith.shape) > 0:
+            zeros = np.zeros(preds_ith.shape, dtype="int")
+            zeros[np.argmax(preds_ith, axis=0)] = 1 
+            preds_ith = zeros
+        else:
+            preds_ith[preds_ith >= 0.5] = 1 
+            preds_ith[preds_ith < 0.5] = 0 
+            preds_ith.dtype = "int"
+            zeros = np.zeros((2), dtype="int")
+            zeros[preds_ith] = 1 
+            preds_ith = zeros 
+
+        df = pd.concat([
+            df,
+            pd.DataFrame({
+            "classes": indexes, 
+            "preds": preds_ith,
+            "actuals": labels[i]
+        })
+        ], axis=0)
+
+    plt.imshow(input / 255.0)
+    plt.show()
+
+    return df
