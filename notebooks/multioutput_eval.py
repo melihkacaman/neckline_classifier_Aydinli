@@ -77,6 +77,24 @@ class MultiOutputModelTester:
             }
         return result
     
+    def get_falses(self): 
+        result = dict() 
+        for col in self.y_hats.keys(): 
+            custom_yhats = np.array(self.y_hats[col].copy()) 
+            if custom_yhats.ndim == 2:
+                zeros = np.zeros(custom_yhats.shape) 
+                zeros[np.arange(custom_yhats.shape[0]), np.argmax(custom_yhats, axis=1)] = 1
+                custom_yhats = zeros 
+            else:
+                custom_yhats[custom_yhats >= 0.5] = 1 
+                custom_yhats[custom_yhats < 0.5] = 0 
+
+            result[col] = custom_yhats 
+        
+        return result
+            
+
+    
 
 def custom_predict(model: tf.keras.models.Model, input ,labels: list, classes: dict):
     df = pd.DataFrame() 
