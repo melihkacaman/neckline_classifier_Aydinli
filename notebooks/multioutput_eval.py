@@ -82,14 +82,18 @@ class MultiOutputModelTester:
         for col in self.y_hats.keys(): 
             custom_yhats = np.array(self.y_hats[col].copy()) 
             if custom_yhats.ndim == 2:
-                zeros = np.zeros(custom_yhats.shape) 
+                zeros = np.zeros(custom_yhats.shape, dtype=int) 
                 zeros[np.arange(custom_yhats.shape[0]), np.argmax(custom_yhats, axis=1)] = 1
                 custom_yhats = zeros 
+
+                product = custom_yhats * self.ys[col]  
+                result[col] = [self.paths[idx] for idx,item in enumerate(product) if sum(item) == 0]
             else:
                 custom_yhats[custom_yhats >= 0.5] = 1 
                 custom_yhats[custom_yhats < 0.5] = 0 
 
-            result[col] = custom_yhats 
+                product = custom_yhats != self.ys[col] 
+                result[col] = [self.paths[idx] for idx,item in enumerate(product) if item == True]
         
         return result
             
